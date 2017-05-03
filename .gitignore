@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # --- OS X ---
 *.DS_Store
 .AppleDouble
@@ -124,3 +125,7 @@ ENV/
 
 # mkdocs documentation
 /site
+=======
+output
+DS_STORE
+>>>>>>> Simple obfuscation through changing function names.
