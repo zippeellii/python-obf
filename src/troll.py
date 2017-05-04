@@ -1,5 +1,4 @@
-"""
-Usage: obfuscator.py [-o NAME] FILE...
+"""Usage: obfuscator.py [-o NAME] FILE...
 
 Arguments:
     FILE        python file that should be obfuscated
@@ -20,18 +19,16 @@ def _rename_functions(src):
 def _remove_comments(src):
     """Hello."""
     match = patterns.re_comments.search(src)
-    # We have a comment
     if match:
+        print match
+        print src
         return ''
     return src
 
 
 def _add_fuzzed_code(src):
     """Hello."""
-    for line in src:
-        # Add random code to the line if contains none.
-        if not line.trim():
-            pass
+    pass
 
 
 def _random_ordering(src):
