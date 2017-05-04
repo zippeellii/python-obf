@@ -20,7 +20,7 @@ import re
 function_mapper = dict()
 variable_mapper = dict()
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
@@ -29,13 +29,14 @@ def _rename_functions(src):
     if match:
         new_name = utils.gen_random_name()
         function_mapper[match.group(0)] = new_name
-        return re.sub(r'(def )' + match.group(0), r'\1'+new_name, src)
+        return re.sub(r'(def )' + match.group(0), r'\1' + new_name, src)
     return src
 
+
 def _rename_function_calls(src):
-    for name, mapped_name in function_mapper.iteritems():
+    for name, m in function_mapper.iteritems():
         if name in src:
-            src = re.sub(r'(.*)' + name + r'(.*)', r'\1'+mapped_name+r'\2', src)
+            src = re.sub(r'(.*)' + name + r'(.*)', r'\1' + m + r'\2', src)
     return src
 
 
@@ -47,6 +48,7 @@ def _remove_comments(src):
         return ''
     return src
 
+
 def _rename_variables(src):
     match = patterns.re_var_assignment.search(src)
     if match:
@@ -55,12 +57,13 @@ def _rename_variables(src):
         return re.sub(r'(\w+)( =)', new_name + r'\2', src)
     return src
 
+
 def _rename_variable_usage(src):
-    for name, mapped in variable_mapper.iteritems():
-        if name in src:
-            print 'Found variable usage'
-            src = re.sub(r'(.*)' + name + r'([.[, :)])', r'\1' + mapped + r'\2', src)
-            print src
+    for n, m in variable_mapper.iteritems():
+        if n in src:
+            logger.debug('Found variable usage')
+            src = re.sub(r'(.*)' + n + r'([.[, :)])', r'\1' + m + r'\2', src)
+            logger.debug(src)
     return src
 
 
