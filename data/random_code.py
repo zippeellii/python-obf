@@ -1,7 +1,4 @@
 def quick_sort(arr, first, last):
-    """ Quicksort
-        Complexity: best O(n) avg O(n log(n)), worst O(N^2)
-    """
     if first < last:
         pos = partition(arr, first, last)
         print(arr[first:pos-1], arr[pos+1:last])
@@ -20,9 +17,6 @@ def partition(arr, first, last):
     return wall
 
 def merge_sort(arr):
-    """ Merge Sort
-        Complexity: O(n log(n))
-    """
     # Our recursive base case
     if len(arr)<= 1:
         return arr
@@ -34,9 +28,6 @@ def merge_sort(arr):
     return merge(left, right)
 
 def merge(left, right):
-    """ Merge helper
-        Complexity: O(n)
-    """
     arr = []
     left_cursor, right_cursor = 0,0
     while left_cursor < len(left) and right_cursor < len(right):

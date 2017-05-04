@@ -60,10 +60,11 @@ def _rename_variables(src):
 
 def _rename_variable_usage(src):
     for n, m in variable_mapper.iteritems():
-        if n in src:
-            logger.debug('Found variable usage')
-            src = re.sub(r'(.*)' + n + r'([.[, :)])', r'\1' + m + r'\2', src)
-            logger.debug(src)
+        if n not in src:
+            continue
+        logger.debug('Found variable usage')
+        src = re.sub(r'(.*)' + n + r'([.[, :)])', r'\1' + m + r'\2', src)
+        logger.debug(src)
     return src
 
 
@@ -94,7 +95,27 @@ def _add_fuzzed_code(src):
         if '\"\"\"' in line:
             in_comment_block = not in_comment_block
 
-        if line.strip() or in_comment_block:
+        if in_comment_block:
+            new_src.append(line)
+            continue
+
+        leads = leading_spaces(src[idx - 1])
+
+        if src[idx - 1].strip() and src[idx - 1].rstrip()[-1] == ':':
+            leads += 4
+
+        # Some lines have one space in them so we do some magic to compensate
+        indent = ' ' * (leads - leads % 2)
+
+        if src[idx - 1].strip() and random.random() > 0.5:
+            name = utils.gen_random_name()
+            num = str(random.randint(-10000, 10000))
+            dec = str(random.random())
+            chars = '\'' + utils.gen_random_name() + '\''
+            val = random.choice([num, dec, chars])
+            new_src.append(indent + name + ' = ' + val + '\n')
+
+        if line.strip():
             new_src.append(line)
             continue
 
@@ -102,10 +123,6 @@ def _add_fuzzed_code(src):
 
         # Pick a random function to insert
         fun_lines = random.choice(random_functions)
-
-        leads = leading_spaces(src[idx - 1])
-        # Some lines have one space in them so we do some magic to compensate
-        indent = ' ' * (leads - leads % 2)
 
         # Append each line of the function with correct indentation
         for fun_line in fun_lines:
