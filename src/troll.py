@@ -19,8 +19,9 @@ def _rename_functions(src):
 def _remove_comments(src):
     """Hello."""
     match = patterns.re_comments.search(src)
-    # We have a comment
     if match:
+        print match
+        print src
         return ''
     return src
 
