@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # --- OS X ---
 *.DS_Store
 .AppleDouble
@@ -128,4 +127,3 @@ ENV/
 =======
 output
 DS_STORE
->>>>>>> Simple obfuscation through changing function names.
