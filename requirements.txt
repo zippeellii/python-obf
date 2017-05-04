@@ -1,0 +1,2 @@
+# python-obf requirements
+docopt == 0.6.2
