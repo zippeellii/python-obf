@@ -1,4 +1,5 @@
-"""Usage: obfuscator.py [-o NAME] FILE...
+"""
+Usage: obfuscator.py [-o NAME] FILE...
 
 Arguments:
     FILE        python file that should be obfuscated
@@ -22,7 +23,10 @@ def _remove_comments(src):
 
 def _add_fuzzed_code(src):
     """Hello."""
-    pass
+    for line in src:
+        # Add random code to the line if contains none.
+        if not line.trim():
+            pass
 
 
 def _random_ordering(src):
