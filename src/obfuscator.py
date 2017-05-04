@@ -15,8 +15,10 @@ import random
 
 import regex_patterns as patterns
 import utils
+import re
 
 function_mapper = dict()
+variable_mapper = dict()
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -27,13 +29,13 @@ def _rename_functions(src):
     if match:
         new_name = utils.gen_random_name()
         function_mapper[match.group(0)] = new_name
-        return src.replace(match.group(0), new_name)
+        return re.sub(r'(def )' + match.group(0), r'\1'+new_name, src)
     return src
 
 def _rename_function_calls(src):
     for name, mapped_name in function_mapper.iteritems():
         if name in src:
-            return src.replace(name, mapped_name)
+            src = re.sub(r'(.*)' + name + r'(.*)', r'\1'+mapped_name+r'\2', src)
     return src
 
 
@@ -43,6 +45,22 @@ def _remove_comments(src):
     # We have a comment
     if match:
         return ''
+    return src
+
+def _rename_variables(src):
+    match = patterns.re_var_assignment.search(src)
+    if match:
+        new_name = utils.gen_random_name()
+        variable_mapper[match.group(1)] = new_name
+        return re.sub(r'(\w+)( =)', new_name + r'\2', src)
+    return src
+
+def _rename_variable_usage(src):
+    for name, mapped in variable_mapper.iteritems():
+        if name in src:
+            print 'Found variable usage'
+            src = re.sub(r'(.*)' + name + r'([.[, :)])', r'\1' + mapped + r'\2', src)
+            print src
     return src
 
 
@@ -116,11 +134,12 @@ if __name__ == '__main__':
         for line in file:
             lines.append(line)
 
-        lines = _add_fuzzed_code(lines)
-        for idx, line in enumerate(lines):
-            lines[idx] = _remove_comments(line)
-            lines[idx] = _rename_functions(line)
-            lines[idx] = _rename_function_calls(line)
+        for idx, _ in enumerate(lines):
+            lines[idx] = _remove_comments(lines[idx])
+            lines[idx] = _rename_functions(lines[idx])
+            lines[idx] = _rename_function_calls(lines[idx])
+            lines[idx] = _rename_variables(lines[idx])
+            lines[idx] = _rename_variable_usage(lines[idx])
 
         _write_file(lines, output_name)
     except docopt.DocoptExit as e:
