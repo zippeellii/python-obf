@@ -14,14 +14,27 @@ import os
 import random
 
 import regex_patterns as patterns
+import utils
+
+function_mapper = dict()
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
 def _rename_functions(src):
-    """Hello."""
-    pass
+    match = patterns.re_function.search(src)
+    if match:
+        new_name = utils.gen_random_name()
+        function_mapper[match.group(0)] = new_name
+        return src.replace(match.group(0), new_name)
+    return src
+
+def _rename_function_calls(src):
+    for name, mapped_name in function_mapper.iteritems():
+        if name in src:
+            return src.replace(name, mapped_name)
+    return src
 
 
 def _remove_comments(src):
@@ -106,6 +119,8 @@ if __name__ == '__main__':
         lines = _add_fuzzed_code(lines)
         for idx, line in enumerate(lines):
             lines[idx] = _remove_comments(line)
+            lines[idx] = _rename_functions(line)
+            lines[idx] = _rename_function_calls(line)
 
         _write_file(lines, output_name)
     except docopt.DocoptExit as e:
