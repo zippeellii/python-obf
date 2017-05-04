@@ -134,6 +134,8 @@ if __name__ == '__main__':
         for line in file:
             lines.append(line)
 
+        lines = _add_fuzzed_code(lines)
+
         for idx, _ in enumerate(lines):
             lines[idx] = _remove_comments(lines[idx])
             lines[idx] = _rename_functions(lines[idx])
