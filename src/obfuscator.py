@@ -10,6 +10,7 @@ Options:
 
 import docopt
 import logging
+import os
 import random
 
 import regex_patterns as patterns
@@ -39,7 +40,8 @@ def _add_fuzzed_code(src):
     The functions and variables will never be referenced but will be obfuscated
     like everything else to create confusion.
     """
-    with open('data/random_code.py', 'r') as f:
+    data_dir = os.path.join(os.path.dirname(__file__), '..', 'data')
+    with open(data_dir + '/random_code.py', 'r') as f:
         random_code = f.read()
 
     random_functions = random_code.split('def')
@@ -51,17 +53,27 @@ def _add_fuzzed_code(src):
         return len(s) - len(s.lstrip())
 
     new_src = []
+    in_comment_block = False
     for idx, line in enumerate(src):
         # Add random code to the line if it does not containg anything. Retain
         # identation.
-        if line.strip():
+        if '\"\"\"' in line:
+            in_comment_block = not in_comment_block
+
+        if line.strip() or in_comment_block:
             new_src.append(line)
             continue
 
         logging.info('Inserting random code on line %s', len(new_src))
+
+        # Pick a random function to insert
         fun_lines = random.choice(random_functions)
 
-        indent = ' ' * leading_spaces(src[idx - 1])
+        leads = leading_spaces(src[idx - 1])
+        # Some lines have one space in them so we do some magic to compensate
+        indent = ' ' * (leads - leads % 2)
+
+        # Append each line of the function with correct indentation
         for fun_line in fun_lines:
             new_src.append(indent + fun_line + '\n')
 
@@ -83,8 +95,9 @@ def _write_file(lines, name):
 if __name__ == '__main__':
     try:
         args = docopt.docopt(__doc__)
-        output_name = args['-o'] or 'obfuscated.py'
         file = open(args['FILE'][0])
+        file_name = args['FILE'][0].split('/')[-1].split('.')[0]
+        output_name = args['-o'] or file_name + '_obfuscated.py'
 
         lines = []
         for line in file:
