@@ -79,12 +79,14 @@ def _add_fuzzed_code(src):
     with open(data_dir + '/random_code.py', 'r') as f:
         random_code = f.read()
 
+    # Find all functions in the file and get the code for each one of them
     random_functions = random_code.split('def')
     random_functions = filter(None, random_functions)  # Remove empty strings
     random_functions = map(lambda x: 'def' + x, random_functions)  # Fix: ugly
     random_functions = map(lambda x: x.split('\n'), random_functions)
 
     def leading_spaces(s):
+        """Calculate how many spaces a line is indented with."""
         return len(s) - len(s.lstrip())
 
     new_src = []
@@ -95,18 +97,25 @@ def _add_fuzzed_code(src):
         if '\"\"\"' in line:
             in_comment_block = not in_comment_block
 
+        # We do not wanna add code within a comment block. It will create
+        # syntax errors.
         if in_comment_block:
             new_src.append(line)
             continue
 
+        # Fetch how much previous line is indented
         leads = leading_spaces(src[idx - 1])
 
+        # If previous line is beginning of a block we have to add som addtional
+        # identation. Assuming its pep8 compliant, so we use 4 spaces
         if src[idx - 1].strip() and src[idx - 1].rstrip()[-1] == ':':
             leads += 4
 
         # Some lines have one space in them so we do some magic to compensate
         indent = ' ' * (leads - leads % 2)
 
+        # Randomly decide if we should add a random variable to the code. It
+        # will never be referenced by any code.
         if src[idx - 1].strip() and random.random() > 0.5:
             name = utils.gen_random_name()
             num = str(random.randint(-10000, 10000))
@@ -129,6 +138,15 @@ def _add_fuzzed_code(src):
             new_src.append(indent + fun_line + '\n')
 
     return new_src
+
+
+def _replace_constants(src):
+    """Hello."""
+    pass
+
+
+def _redefine_stdlib(src):
+    pass
 
 
 def _random_ordering(src):

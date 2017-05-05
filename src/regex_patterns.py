@@ -1,3 +1,5 @@
+"""Contains regex patterns to find specific properties in source file."""
+
 import re
 
 re_comments = re.compile('(\s*#)')
