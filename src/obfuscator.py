@@ -1,11 +1,15 @@
-"""
-Usage: obfuscator.py [-o NAME] FILE...
+"""Python Obfuscator.
+
+Usage:
+    obfuscator.py [-o NAME] [--quiet | --verbose] FILE...
+    obfuscator.py (-h | --help)
+    obfuscator.py --version
 
 Arguments:
     FILE        python file that should be obfuscated
 
 Options:
-    -o NAME     output into a file named NAME.i
+    -o NAME     output into a file named NAME
 """
 
 import docopt
