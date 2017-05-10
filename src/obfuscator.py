@@ -1,7 +1,7 @@
 """Python Obfuscator.
 
 Usage:
-    obfuscator.py [-o NAME] [--quiet | --verbose] FILE...
+    obfuscator.py [-o NAME] [-k KEY] [--quiet | --verbose] FILE...
     obfuscator.py (-h | --help)
     obfuscator.py --version
 
@@ -10,6 +10,7 @@ Arguments:
 
 Options:
     -o NAME     output into a file named NAME
+    -k KEY      decrypt file with KEY
 """
 
 import docopt
@@ -23,6 +24,8 @@ from subprocess import check_output
 
 import regex_patterns as patterns
 import utils
+import re
+import encryption
 
 function_mapper = dict()
 variable_mapper = dict()
@@ -187,22 +190,30 @@ def _main():
         file = open(args['FILE'][0])
         file_name = args['FILE'][0].split('/')[-1].split('.')[0]
         output_name = args['-o'] or file_name + '_obfuscated.py'
-
+        decrypt_key = args['-k'] or None
+        enc_key = None
         lines = []
         for line in file:
             lines.append(line)
+        if decrypt_key:
+            for idx, _ in enumerate(lines):
+                lines[idx] = encryption.decrypt_string(lines[idx], decrypt_key)
+        else:
+            enc_key = encryption.generate_key()
+            lines = _add_fuzzed_code(lines)
 
-        lines = _add_fuzzed_code(lines)
-
-        for idx, _ in enumerate(lines):
-            lines[idx] = _remove_comments(lines[idx])
-            lines[idx] = _rename_functions(lines[idx])
-            lines[idx] = _rename_function_calls(lines[idx])
-            lines[idx] = _rename_variables(lines[idx])
-        for idx, _ in enumerate(lines):
-            lines[idx] = _rename_variable_usage(lines[idx])
+            for idx, _ in enumerate(lines):
+                lines[idx] = _remove_comments(lines[idx])
+                lines[idx] = _rename_functions(lines[idx])
+                lines[idx] = _rename_function_calls(lines[idx])
+                lines[idx] = _rename_variables(lines[idx])
+            for idx, _ in enumerate(lines):
+                lines[idx] = _rename_variable_usage(lines[idx])
+                lines[idx] = encryption.encrypt_string(lines[idx], enc_key)
 
         _write_file(lines, output_name)
+        if enc_key:
+            print 'Encryption key is:', enc_key
     except docopt.DocoptExit as e:
         print e.message
 
