@@ -16,7 +16,6 @@ import docopt
 
 import logging
 import os
-import sys
 import random
 import re
 
@@ -29,7 +28,7 @@ function_mapper = dict()
 variable_mapper = dict()
 
 logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('python-obf')
 
 
 def _rename_functions(src):
@@ -71,8 +70,8 @@ def _rename_variable_usage(src):
         if name in src:
             match = re.search(r'(\'.*)' + name + r'([./]\S*\')', src)
             if match:
-                print match.group(0)
-                print 'MATCH'
+                logger.debug(match.group(0))
+                logger.debug('MATCH')
                 continue
             src = re.sub(
                 r'(?<![a-zA-Z_])' + name + r'(?![a-zA-Z0-9_])',
@@ -142,7 +141,7 @@ def _add_fuzzed_code(src):
             new_src.append(line)
             continue
 
-        logging.info('Inserting random code on line %s', len(new_src))
+        logger.info('Inserting random code on line %s', len(new_src))
 
         # Pick a random function to insert
         fun_lines = random.choice(random_functions)
@@ -175,7 +174,7 @@ def _write_file(lines, name):
         out_file.write(line)
 
 
-if __name__ == '__main__':
+def _main():
     try:
         args = docopt.docopt(__doc__)
 
@@ -183,7 +182,12 @@ if __name__ == '__main__':
             git_hash = check_output(['git', 'rev-parse', '--verify',
                                      '--short', 'HEAD'])
             print "Python obfuscator 1.3.3.7-%s" % git_hash
-            sys.exit()
+            return
+
+        if args['--verbose']:
+            logging.basicConfig(level=logging.NOTSET)
+        if args['--quiet']:
+            logging.basicConfig(level=logging.ERROR)
 
         file = open(args['FILE'][0])
         file_name = args['FILE'][0].split('/')[-1].split('.')[0]
@@ -205,4 +209,8 @@ if __name__ == '__main__':
 
         _write_file(lines, output_name)
     except docopt.DocoptExit as e:
-        logging.error(e.message)
+        print e.message
+
+
+if __name__ == '__main__':
+    _main()
