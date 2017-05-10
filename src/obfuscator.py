@@ -13,13 +13,17 @@ Options:
 """
 
 import docopt
+
 import logging
 import os
+import sys
 import random
+import re
+
+from subprocess import check_output
 
 import regex_patterns as patterns
 import utils
-import re
 
 function_mapper = dict()
 variable_mapper = dict()
@@ -71,8 +75,8 @@ def _rename_variable_usage(src):
                 print 'MATCH'
                 continue
             src = re.sub(
-                r'(?<![a-zA-Z_])' + name + r'(?![a-zA-Z0-9_])', 
-                mapped, 
+                r'(?<![a-zA-Z_])' + name + r'(?![a-zA-Z0-9_])',
+                mapped,
                 src
             )
     return src
@@ -174,6 +178,13 @@ def _write_file(lines, name):
 if __name__ == '__main__':
     try:
         args = docopt.docopt(__doc__)
+
+        if args['--version']:
+            git_hash = check_output(['git', 'rev-parse', '--verify',
+                                     '--short', 'HEAD'])
+            print "Python obfuscator 1.3.3.7-%s" % git_hash
+            sys.exit()
+
         file = open(args['FILE'][0])
         file_name = args['FILE'][0].split('/')[-1].split('.')[0]
         output_name = args['-o'] or file_name + '_obfuscated.py'
