@@ -65,12 +65,16 @@ def _rename_variables(src):
 def _rename_variable_usage(src):
     for name, mapped in variable_mapper.iteritems():
         if name in src:
-            logging.debug('Found variable usage')
-            logging.debug(name)
-            logging.debug(src)
-            src = re.sub(r'(?<![a-zA-Z_])' + name + r'(?![a-zA-Z0-9_])',
-                         mapped,
-                         src)
+            match = re.search(r'(\'.*)' + name + r'([./]\S*\')', src)
+            if match:
+                print match.group(0)
+                print 'MATCH'
+                continue
+            src = re.sub(
+                r'(?<![a-zA-Z_])' + name + r'(?![a-zA-Z0-9_])', 
+                mapped, 
+                src
+            )
     return src
 
 
