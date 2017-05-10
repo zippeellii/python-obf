@@ -56,19 +56,19 @@ def _remove_comments(src):
 def _rename_variables(src):
     match = patterns.re_var_assignment.search(src)
     if match:
-        new_name = utils.gen_random_name()
+        new_name = variable_mapper.get(match.group(1)) or utils.gen_random_name()
         variable_mapper[match.group(1)] = new_name
         return re.sub(r'(\w+)( =)', new_name + r'\2', src)
     return src
 
 
 def _rename_variable_usage(src):
-    for n, m in variable_mapper.iteritems():
-        if n not in src:
-            continue
-        logger.debug('Found variable usage')
-        src = re.sub(r'(.*)' + n + r'([.[, :)])', r'\1' + m + r'\2', src)
-        logger.debug(src)
+    for name, mapped in variable_mapper.iteritems():
+        if name in src:
+            print 'Found variable usage'
+            print name
+            print src
+            src = re.sub(r'(?<![a-zA-Z_])' + name + r'(?![a-zA-Z0-9_])', mapped, src)
     return src
 
 
@@ -183,6 +183,7 @@ if __name__ == '__main__':
             lines[idx] = _rename_functions(lines[idx])
             lines[idx] = _rename_function_calls(lines[idx])
             lines[idx] = _rename_variables(lines[idx])
+        for idx, _ in enumerate(lines):
             lines[idx] = _rename_variable_usage(lines[idx])
 
         _write_file(lines, output_name)
