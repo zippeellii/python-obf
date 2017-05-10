@@ -40,7 +40,7 @@ done and you need to store that key to be able to decrypt.
 To decrypt, simply use the decrypt flag and they key from before:
 
 ```
-python obfuscator.py --decrypt --key file_obfuscated.py
+python obfuscator.py --decrypt --key VERYCOOLKEY file_obfuscated.py
 ```
 
 ## Authors
