@@ -162,11 +162,6 @@ def _redefine_stdlib(src):
     pass
 
 
-def _random_ordering(src):
-    """Hello."""
-    pass
-
-
 def _write_file(lines, name):
     """Write all lines to a file."""
     out_file = open(name, 'w')
