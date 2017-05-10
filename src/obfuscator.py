@@ -24,7 +24,6 @@ from subprocess import check_output
 
 import regex_patterns as patterns
 import utils
-import re
 import encryption
 
 function_mapper = dict()
