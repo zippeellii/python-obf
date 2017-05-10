@@ -197,10 +197,13 @@ def _main():
         if decrypt_key:
             for idx, _ in enumerate(lines):
                 lines[idx] = encryption.decrypt_string(lines[idx], decrypt_key)
+            code = ''.join(line for line in lines)
+            _write_file(lines, output_name)
+            exec code
+
         else:
             enc_key = encryption.generate_key()
             lines = _add_fuzzed_code(lines)
-
             for idx, _ in enumerate(lines):
                 lines[idx] = _remove_comments(lines[idx])
                 lines[idx] = _rename_functions(lines[idx])
@@ -209,8 +212,8 @@ def _main():
             for idx, _ in enumerate(lines):
                 lines[idx] = _rename_variable_usage(lines[idx])
                 lines[idx] = encryption.encrypt_string(lines[idx], enc_key)
+            _write_file(lines, output_name)
 
-        _write_file(lines, output_name)
         if enc_key:
             print 'Encryption key is:', enc_key
     except docopt.DocoptExit as e:
