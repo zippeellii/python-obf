@@ -1,7 +1,7 @@
 """Python Obfuscator.
 
 Usage:
-    obfuscator.py [-o NAME] [-k KEY] [--quiet | --verbose] FILE...
+    obfuscator.py [-o NAME] [-k KEY] [--quiet | --verbose | --encrypt] FILE...
     obfuscator.py (-h | --help)
     obfuscator.py --version
 
@@ -13,6 +13,7 @@ Options:
     -k KEY      decrypt file with KEY
 """
 
+# TODO: Do not troll with strings that can contain variable names
 import docopt
 
 import logging
@@ -181,10 +182,14 @@ def _main():
             print "Python obfuscator 1.3.3.7-%s" % git_hash
             return
 
+        encrypt = False
+
         if args['--verbose']:
             logging.basicConfig(level=logging.NOTSET)
         if args['--quiet']:
             logging.basicConfig(level=logging.ERROR)
+        if args['--encrypt']:
+            encrypt = True
 
         file = open(args['FILE'][0])
         file_name = args['FILE'][0].split('/')[-1].split('.')[0]
@@ -198,7 +203,9 @@ def _main():
             for idx, _ in enumerate(lines):
                 lines[idx] = encryption.decrypt_string(lines[idx], decrypt_key)
             code = ''.join(line for line in lines)
+            # This only exists for testing purposes
             _write_file(lines, output_name)
+
             exec code
 
         else:
@@ -211,10 +218,11 @@ def _main():
                 lines[idx] = _rename_variables(lines[idx])
             for idx, _ in enumerate(lines):
                 lines[idx] = _rename_variable_usage(lines[idx])
-                lines[idx] = encryption.encrypt_string(lines[idx], enc_key)
+                if encrypt:
+                    lines[idx] = encryption.encrypt_string(lines[idx], enc_key)
             _write_file(lines, output_name)
 
-        if enc_key:
+        if encryption and enc_key:
             print 'Encryption key is:', enc_key
     except docopt.DocoptExit as e:
         print e.message
