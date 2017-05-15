@@ -71,19 +71,39 @@ def _rename_variables(src):
 
 
 def _rename_variable_usage(src):
-    for name, mapped in variable_mapper.iteritems():
-        if name in src:
-            match = re.search(r'(\'.*)' + name + r'([./]\S*\')', src)
-            if match:
-                logger.debug(match.group(0))
-                logger.debug('MATCH')
-                continue
-            src = re.sub(
-                r'(?<![a-zA-Z_])' + name + r'(?![a-zA-Z0-9_])',
-                mapped,
-                src
-            )
-    return src
+    words = re.split(r'(\')', src)
+    found_quote = False
+    new_str = ''
+    for w in words:
+        if w == "'":
+            new_str = new_str + "'"
+            found_quote = not found_quote
+            continue
+        if not found_quote:
+            for name, mapped in variable_mapper.iteritems():
+                if name in w:
+                    w = re.sub(
+                        r'(?<![a-zA-Z_])' + name + r'(?![a-zA-Z0-9_])',
+                        mapped,
+                        w
+                    )
+        new_str = new_str + w
+
+    return new_str
+
+
+    # for name, mapped in variable_mapper.iteritems():
+    #     if name in src:
+    #         match = re.search(r'(\'.*)' + name + r'([./]\S*\')', src)
+    #         if match:
+    #             logger.debug(match.group(0))
+    #             logger.debug('MATCH')
+    #             continue
+    #         src = re.sub(
+    #             r'(?<![a-zA-Z_])' + name + r'(?![a-zA-Z0-9_])',
+    #             mapped,
+    #             src
+    #         )
 
 
 def _add_fuzzed_code(src):
@@ -224,7 +244,7 @@ def _main():
                     lines[idx] = encryption.encrypt_string(lines[idx], enc_key)
             _write_file(lines, output_name)
 
-        if encryption and enc_key:
+        if encrypt and enc_key:
             print 'Encryption key is:', enc_key
     except docopt.DocoptExit as e:
         print e.message
