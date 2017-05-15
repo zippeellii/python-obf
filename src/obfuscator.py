@@ -13,8 +13,6 @@ Options:
     -k KEY      decrypt file with KEY
 """
 
-import docopt
-
 import logging
 import os
 import random
@@ -22,9 +20,13 @@ import re
 
 from subprocess import check_output
 
-import regex_patterns as patterns
-import utils
+import docopt
+
 import encryption
+
+import regex_patterns as patterns
+
+import utils
 
 function_mapper = dict()
 variable_mapper = dict()
