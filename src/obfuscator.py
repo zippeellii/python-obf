@@ -118,12 +118,9 @@ def _add_fuzzed_code(src):
     # Find all functions in the file and get the code for each one of them
     random_functions = random_code.split('def')
     random_functions = filter(None, random_functions)  # Remove empty strings
-    random_functions = ['def' + f for f in random_functions]
-    random_functions = [f.split('\n') for f in random_functions]
+    random_functions = ['def' + rf for rf in random_functions]
+    random_functions = [r.split('\n') for r in random_functions]
     # List comprehensions are preferred over map lambdas
-    
-    # random_functions = map(lambda x: 'def' + x, random_functions)  # Fix: ugly
-    # random_functions = map(lambda x: x.split('\n'), random_functions)
 
     def leading_spaces(s):
         """Calculate how many spaces a line is indented with."""
@@ -131,15 +128,18 @@ def _add_fuzzed_code(src):
 
     new_src = []
     in_comment_block = False
+    in_multiline_declaration = False
     for idx, line in enumerate(src):
         # Add random code to the line if it does not containg anything. Retain
         # identation.
         if '\"\"\"' in line:
             in_comment_block = not in_comment_block
 
+        in_multiline_declaration = '\\' in line
+
         # We do not wanna add code within a comment block. It will create
         # syntax errors.
-        if in_comment_block:
+        if in_comment_block or in_multiline_declaration:
             new_src.append(line)
             continue
 
@@ -157,14 +157,13 @@ def _add_fuzzed_code(src):
         # Randomly decide if we should add a random variable to the code. It
         # will never be referenced by any code.
         if src[idx - 1].strip() and random.random() > 0.5:
-            # TODO: This actually puts random variable assignments in multi line
-            # function calls making the call become a keyword call. 
+            # function calls making the call become a keyword call.
             name = utils.gen_random_name()
             num = str(random.randint(-10000, 10000))
             dec = str(random.random())
             chars = '\'' + utils.gen_random_name() + '\''
             val = random.choice([num, dec, chars])
-            new_src.append(indent + name + ' = ' + val + '\n'),1
+            new_src.append(indent + name + ' = ' + val + '\n')
 
         if line.strip():
             new_src.append(line)
@@ -207,7 +206,8 @@ def _main():
         args = docopt.docopt(__doc__)
 
         if args['--version']:
-            git_hash = check_output(['git', 'rev-parse', '--verify', '--short', 'HEAD'])
+            git_hash = check_output(['git', 'rev-parse', '--verify',
+                                     '--short', 'HEAD'])
             print "Python obfuscator 1.3.3.7-%s" % git_hash
             return
 
@@ -221,7 +221,7 @@ def _main():
         if args.get('--encrypt'):
             encrypt = True
         if args.get('--debug'):
-            deubg = True
+            debug = True
 
         file = open(args['FILE'][0])
         file_name = args['FILE'][0].split('/')[-1].split('.')[0]
