@@ -46,9 +46,10 @@ def _rename_functions(src):
 
 
 def _rename_function_calls(src):
-    for name, m in function_mapper.iteritems():
+    words = re.split(r'(\')', src)
+    for name, mapped in function_mapper.iteritems():
         if name in src:
-            src = re.sub(r'(.*)' + name + r'(.*)', r'\1' + m + r'\2', src)
+            src = re.sub(r'(.*)' + name + r'(.*)', r'\1' + mapped + r'\2', src)
     return src
 
 
@@ -88,22 +89,7 @@ def _rename_variable_usage(src):
                         w
                     )
         new_str = new_str + w
-
     return new_str
-
-
-    # for name, mapped in variable_mapper.iteritems():
-    #     if name in src:
-    #         match = re.search(r'(\'.*)' + name + r'([./]\S*\')', src)
-    #         if match:
-    #             logger.debug(match.group(0))
-    #             logger.debug('MATCH')
-    #             continue
-    #         src = re.sub(
-    #             r'(?<![a-zA-Z_])' + name + r'(?![a-zA-Z0-9_])',
-    #             mapped,
-    #             src
-    #         )
 
 
 def _add_fuzzed_code(src):
@@ -199,18 +185,17 @@ def _main():
         args = docopt.docopt(__doc__)
 
         if args['--version']:
-            git_hash = check_output(['git', 'rev-parse', '--verify',
-                                     '--short', 'HEAD'])
+            git_hash = check_output(['git', 'rev-parse', '--verify', '--short', 'HEAD'])
             print "Python obfuscator 1.3.3.7-%s" % git_hash
             return
 
         encrypt = False
 
-        if args['--verbose']:
+        if args.get('--verbose'):
             logging.basicConfig(level=logging.NOTSET)
-        if args['--quiet']:
+        if args.get('--quiet'):
             logging.basicConfig(level=logging.ERROR)
-        if args['--encrypt']:
+        if args.get('--encrypt'):
             encrypt = True
 
         file = open(args['FILE'][0])
@@ -228,7 +213,7 @@ def _main():
             # This only exists for testing purposes
             _write_file(lines, output_name)
 
-            exec code
+            # exec code
 
         else:
             enc_key = encryption.generate_key()
