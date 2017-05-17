@@ -27,9 +27,4 @@ def decrypt_string(src, key):
 def _decrypt_char(c, k):
     lol = chr(((ord(c) - 97 - ord(k) + 97) % 26) + 97) \
         if c in 'abcdefghijklmnopqrstuvwxyz' else str(c)
-    print 'C:', c
-    print 'K:', k
-    print 'Ord(k):' + str(ord(k) - 97)
-    print '?:', lol
-    print '-----------'
     return lol

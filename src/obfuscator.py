@@ -47,10 +47,23 @@ def _rename_functions(src):
 
 def _rename_function_calls(src):
     words = re.split(r'(\')', src)
-    for name, mapped in function_mapper.iteritems():
-        if name in src:
-            src = re.sub(r'(.*)' + name + r'(.*)', r'\1' + mapped + r'\2', src)
-    return src
+    found_quote = False
+    new_str = ''
+    for w in words:
+        if w == "'":
+            new_str += "'"
+            found_quote = not found_quote
+            continue
+        if not found_quote:
+            for name, mapped in function_mapper.iteritems():
+                if name in w:
+                    w = re.sub(
+                        (r'(?<![a-zA-Z_])' + name + r'(?![a-zA-Z0-9_])'),
+                        mapped,
+                        w
+                    )
+        new_str += w
+    return new_str
 
 
 def _remove_comments(src):
@@ -77,7 +90,7 @@ def _rename_variable_usage(src):
     new_str = ''
     for w in words:
         if w == "'":
-            new_str = new_str + "'"
+            new_str += "'"
             found_quote = not found_quote
             continue
         if not found_quote:
@@ -88,7 +101,7 @@ def _rename_variable_usage(src):
                         mapped,
                         w
                     )
-        new_str = new_str + w
+        new_str += w
     return new_str
 
 
@@ -106,8 +119,12 @@ def _add_fuzzed_code(src):
     # Find all functions in the file and get the code for each one of them
     random_functions = random_code.split('def')
     random_functions = filter(None, random_functions)  # Remove empty strings
-    random_functions = map(lambda x: 'def' + x, random_functions)  # Fix: ugly
-    random_functions = map(lambda x: x.split('\n'), random_functions)
+    random_functions = ['def' + f for f in random_functions]
+    random_functions = [f.split('\n') for f in random_functions]
+    # List comprehensions are preferred over map lambdas
+    
+    # random_functions = map(lambda x: 'def' + x, random_functions)  # Fix: ugly
+    # random_functions = map(lambda x: x.split('\n'), random_functions)
 
     def leading_spaces(s):
         """Calculate how many spaces a line is indented with."""
@@ -141,6 +158,8 @@ def _add_fuzzed_code(src):
         # Randomly decide if we should add a random variable to the code. It
         # will never be referenced by any code.
         if src[idx - 1].strip() and random.random() > 0.5:
+            # TODO: This actually puts random variable assignments in multi line
+            # function calls making the call become a keyword call. 
             name = utils.gen_random_name()
             num = str(random.randint(-10000, 10000))
             dec = str(random.random())
