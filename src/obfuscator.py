@@ -1,7 +1,7 @@
 """Python Obfuscator.
 
 Usage:
-    obfuscator.py [-o NAME] [-k KEY] [--quiet | --verbose | --encrypt] FILE...
+    obfuscator.py [-o NAME] [-k KEY] [--quiet | --verbose | --encrypt | --debug] FILE...
     obfuscator.py (-h | --help)
     obfuscator.py --version
 
@@ -13,7 +13,6 @@ Options:
     -k KEY      decrypt file with KEY
 """
 
-# TODO: Do not troll with strings that can contain variable names
 import logging
 import os
 import random
@@ -165,7 +164,7 @@ def _add_fuzzed_code(src):
             dec = str(random.random())
             chars = '\'' + utils.gen_random_name() + '\''
             val = random.choice([num, dec, chars])
-            new_src.append(indent + name + ' = ' + val + '\n')
+            new_src.append(indent + name + ' = ' + val + '\n'),1
 
         if line.strip():
             new_src.append(line)
@@ -193,10 +192,14 @@ def _redefine_stdlib(src):
 
 
 def _write_file(lines, name):
+    print 'Write files line length', len(lines)
     """Write all lines to a file."""
     out_file = open(name, 'w')
     for line in lines:
-        out_file.write(line)
+        if line == '':
+            out_file.write('\n')
+        else:
+            out_file.write(line)
 
 
 def _main():
@@ -209,6 +212,7 @@ def _main():
             return
 
         encrypt = False
+        debug = False
 
         if args.get('--verbose'):
             logging.basicConfig(level=logging.NOTSET)
@@ -216,6 +220,8 @@ def _main():
             logging.basicConfig(level=logging.ERROR)
         if args.get('--encrypt'):
             encrypt = True
+        if args.get('--debug'):
+            deubg = True
 
         file = open(args['FILE'][0])
         file_name = args['FILE'][0].split('/')[-1].split('.')[0]
@@ -226,17 +232,21 @@ def _main():
         for line in file:
             lines.append(line)
         if decrypt_key:
+            print len(lines)
+            lines = encryption.unshuffle_lines(lines, decrypt_key)
+            print lines
             for idx, _ in enumerate(lines):
                 lines[idx] = encryption.decrypt_string(lines[idx], decrypt_key)
             code = ''.join(line for line in lines)
-            # This only exists for testing purposes
-            _write_file(lines, output_name)
-
-            # exec code
+            # If debug mode is on, write to file rather than execute
+            if debug:
+                _write_file(lines, output_name)
+            else:
+                exec code
 
         else:
             enc_key = encryption.generate_key()
-            lines = _add_fuzzed_code(lines)
+            # lines = _add_fuzzed_code(lines)
             for idx, _ in enumerate(lines):
                 lines[idx] = _remove_comments(lines[idx])
                 lines[idx] = _rename_functions(lines[idx])
@@ -246,6 +256,9 @@ def _main():
                 lines[idx] = _rename_variable_usage(lines[idx])
                 if encrypt:
                     lines[idx] = encryption.encrypt_string(lines[idx], enc_key)
+
+            lines = encryption.shuffle_lines(lines, enc_key)
+
             _write_file(lines, output_name)
 
         if encrypt and enc_key:

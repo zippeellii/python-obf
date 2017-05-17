@@ -28,3 +28,22 @@ def _decrypt_char(c, k):
     lol = chr(((ord(c) - 97 - ord(k) + 97) % 26) + 97) \
         if c in 'abcdefghijklmnopqrstuvwxyz' else str(c)
     return lol
+
+def shuffle_lines(lines, key):
+    random.seed(key)
+    random.shuffle(lines)
+    return lines
+
+def unshuffle_lines(lines, key):
+    # Initialize the seed
+    random.seed(key)
+    # Create a list of indexes and shuffle it, it will have same order as encrypted
+    # if using same key
+    index_list = range(len(lines))  
+    random.shuffle(index_list)
+    unshuffled_list = [0]*len(lines)
+    # Simply take the corresponding index in the shuffled list from lines
+    for index, original_index in enumerate(index_list):
+        unshuffled_list[original_index] = lines[index]    
+    
+    return unshuffled_list
