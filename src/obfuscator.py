@@ -76,7 +76,7 @@ def _remove_comments(src):
 
 def _rename_variables(src):
     match = patterns.re_var_assignment.search(src)
-    if match:
+    if match and match.group(1) not in utils.reserved_words:
         name = variable_mapper.get(match.group(1)) or utils.gen_random_name()
         variable_mapper[match.group(1)] = name
         return re.sub(r'(\w+)( =)', name + r'\2', src)
@@ -129,6 +129,7 @@ def _add_fuzzed_code(src):
     new_src = []
     in_comment_block = False
     in_multiline_declaration = False
+    parenthesis_open = 0
     for idx, line in enumerate(src):
         # Add random code to the line if it does not containg anything. Retain
         # identation.
@@ -137,9 +138,13 @@ def _add_fuzzed_code(src):
 
         in_multiline_declaration = '\\' in line
 
+        parenthesis_open += line.count('(')
+
         # We do not wanna add code within a comment block. It will create
-        # syntax errors.
-        if in_comment_block or in_multiline_declaration:
+        # syntax errors. Neither in a block that is opened with parenthesis.
+        if in_comment_block or in_multiline_declaration or parenthesis_open:
+            # Make sure that closing parenthesis are accounted for in next line
+            parenthesis_open -= line.count(')')
             new_src.append(line)
             continue
 
@@ -206,8 +211,9 @@ def _main():
         args = docopt.docopt(__doc__)
 
         if args['--version']:
-            git_hash = check_output(['git', 'rev-parse', '--verify',
-                                     '--short', 'HEAD'])
+            git_hash = check_output(
+                ['git', 'rev-parse', '--verify','--short', 'HEAD']
+            )
             print "Python obfuscator 1.3.3.7-%s" % git_hash
             return
 
@@ -242,11 +248,11 @@ def _main():
             if debug:
                 _write_file(lines, output_name)
             else:
-                exec code
+                exec code in globals(), locals()
 
         else:
             enc_key = encryption.generate_key()
-            # lines = _add_fuzzed_code(lines)
+            lines = _add_fuzzed_code(lines)
             for idx, _ in enumerate(lines):
                 lines[idx] = _remove_comments(lines[idx])
                 lines[idx] = _rename_functions(lines[idx])
@@ -256,8 +262,8 @@ def _main():
                 lines[idx] = _rename_variable_usage(lines[idx])
                 if encrypt:
                     lines[idx] = encryption.encrypt_string(lines[idx], enc_key)
-
-            lines = encryption.shuffle_lines(lines, enc_key)
+            if encrypt:
+                lines = encryption.shuffle_lines(lines, enc_key)
 
             _write_file(lines, output_name)
 
