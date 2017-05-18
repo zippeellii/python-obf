@@ -13,6 +13,9 @@ Options:
     -k KEY      decrypt file with KEY
 """
 
+# TODO: Sometimes a single def is being added, don't know when or why.
+# Seems to be when running the obfuscated ubfuscator.
+
 import logging
 import os
 import random
@@ -117,7 +120,8 @@ def _add_fuzzed_code(src):
 
     # Find all functions in the file and get the code for each one of them
     random_functions = random_code.split('def')
-    random_functions = filter(None, random_functions)  # Remove empty strings
+    # Remove empty strings
+    random_functions = filter(None, random_functions)  
     random_functions = ['def' + rf for rf in random_functions]
     random_functions = [r.split('\n') for r in random_functions]
     # List comprehensions are preferred over map lambdas
@@ -143,8 +147,8 @@ def _add_fuzzed_code(src):
         # We do not wanna add code within a comment block. It will create
         # syntax errors. Neither in a block that is opened with parenthesis.
         if in_comment_block or in_multiline_declaration or parenthesis_open:
-            # Make sure that closing parenthesis are accounted for in next line
             parenthesis_open -= line.count(')')
+            # Make sure that closing parenthesis are accounted for in next line
             new_src.append(line)
             continue
 
@@ -162,7 +166,6 @@ def _add_fuzzed_code(src):
         # Randomly decide if we should add a random variable to the code. It
         # will never be referenced by any code.
         if src[idx - 1].strip() and random.random() > 0.5:
-            # function calls making the call become a keyword call.
             name = utils.gen_random_name()
             num = str(random.randint(-10000, 10000))
             dec = str(random.random())
@@ -238,9 +241,7 @@ def _main():
         for line in file:
             lines.append(line)
         if decrypt_key:
-            print len(lines)
             lines = encryption.unshuffle_lines(lines, decrypt_key)
-            print lines
             for idx, _ in enumerate(lines):
                 lines[idx] = encryption.decrypt_string(lines[idx], decrypt_key)
             code = ''.join(line for line in lines)

@@ -14,8 +14,8 @@ def encrypt_string(src, key):
 
 
 def _encrypt_char(c, k):
-    return chr(((ord(c) - 97 + ord(k) - 97) % 26) + 97) \
-        if c in 'abcdefghijklmnopqrstuvwxyz' else c
+    return chr(((ord(c) - 32 + ord(k) - 32) % 93) + 32) \
+        if ord(c) >= 32 and ord(c) <=125 else c
 
 
 def decrypt_string(src, key):
@@ -25,8 +25,8 @@ def decrypt_string(src, key):
 
 
 def _decrypt_char(c, k):
-    lol = chr(((ord(c) - 97 - ord(k) + 97) % 26) + 97) \
-        if c in 'abcdefghijklmnopqrstuvwxyz' else str(c)
+    lol = chr(((ord(c) - 32 - ord(k) + 32) % 93) + 32) \
+        if ord(c) >= 32 and ord(c) <=125 else str(c)
     return lol
 
 def shuffle_lines(lines, key):
