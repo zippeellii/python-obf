@@ -140,7 +140,9 @@ def _add_fuzzed_code(src):
         if '\"\"\"' in line:
             in_comment_block = not in_comment_block
 
-        in_multiline_declaration = '\\' in line
+        in_multiline_declaration = '\\' == line.strip()[-1]
+        # TODO: Check if paraenteses are uneven, then we probably in multiline
+        # too.
 
         parenthesis_open += line.count('(')
 
