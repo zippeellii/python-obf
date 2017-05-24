@@ -121,7 +121,7 @@ def _add_fuzzed_code(src):
     # Find all functions in the file and get the code for each one of them
     random_functions = random_code.split('def')
     # Remove empty strings
-    random_functions = filter(None, random_functions)  
+    random_functions = filter(None, random_functions)
     random_functions = ['def' + rf for rf in random_functions]
     random_functions = [r.split('\n') for r in random_functions]
     # List comprehensions are preferred over map lambdas
@@ -140,7 +140,8 @@ def _add_fuzzed_code(src):
         if '\"\"\"' in line:
             in_comment_block = not in_comment_block
 
-        in_multiline_declaration = '\\' == line.strip()[-1]
+        if '\\' in line:
+            in_multiline_declaration = '\\' == line.strip()[-1]
         # TODO: Check if paraenteses are uneven, then we probably in multiline
         # too.
 
@@ -217,7 +218,7 @@ def _main():
 
         if args['--version']:
             git_hash = check_output(
-                ['git', 'rev-parse', '--verify','--short', 'HEAD']
+                ['git', 'rev-parse', '--verify', '--short', 'HEAD']
             )
             print "Python obfuscator 1.3.3.7-%s" % git_hash
             return
