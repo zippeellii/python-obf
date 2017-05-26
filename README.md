@@ -2,10 +2,14 @@
 A python byte code obfuscator, built as part of the course Language Based
 Security(TDA602) at Chalmers University of Technology.
 
+## Installing
+All dependencies are defined in the `requirements.txt` file. To install them
+either run `pip install -r requirements.txt` or use the shortcut `make dep`.
+
 ## Usage
 ```
 Usage:
-    obfuscator.py [-o NAME] [--quiet | --verbose] FILE...
+    obfuscator.py [-o NAME] [-k KEY] [--quiet | --verbose | --encrypt | --debug] FILE...
     obfuscator.py (-h | --help)
     obfuscator.py --version
 
@@ -14,6 +18,7 @@ Arguments:
 
 Options:
     -o NAME     output into a file named NAME
+    -k KEY      decrypt file with KEY
 ```
 
 **Example:**
@@ -40,7 +45,7 @@ done and you need to store that key to be able to decrypt.
 To decrypt, simply use the decrypt flag and they key from before:
 
 ```
-python obfuscator.py --decrypt --key VERYCOOLKEY file_obfuscated.py
+python obfuscator.py -k VERYCOOLKEY file_obfuscated.py
 ```
 
 ## Authors
